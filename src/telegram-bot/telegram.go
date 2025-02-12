@@ -26,7 +26,8 @@ func init() {
 }
 
 func main() {
-	bot := telegramAPI.NewBot(token)
+	log.Println(token)
+	bot := telegramAPI.NewBot("")
 	log.Printf("Bot started!! >w<")
 	var offset int = 0
 	for {
@@ -36,7 +37,11 @@ func main() {
 			time.Sleep(2 * time.Second)
 			continue
 		}
+		if updates != nil {
+			log.Println("updates:", updates)
+		}
 		for _, update := range updates {
+			log.Println("aa")
 			// Update the offset to the latest update_id + 1
 			if update.UpdateID >= offset {
 				offset = update.UpdateID + 1
@@ -47,7 +52,7 @@ func main() {
 				if err != nil {
 					log.Println("Error sending message:", err)
 				} else {
-					log.Printf("Sent hello world to chat %s", update.Message.Chat.ID)
+					log.Printf("Sent hello world to chat %d", update.Message.Chat.ID)
 				}
 			}
 		}

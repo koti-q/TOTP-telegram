@@ -1,3 +1,0 @@
-[submodule "src/API"]
-	path = src/API
-	url = https://github.com/koti-q/telegramAPI.git

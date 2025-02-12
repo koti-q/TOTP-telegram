@@ -1,34 +1,27 @@
-package totp_generator
+package totp
 
 import (
 	"crypto/hmac"
 	"crypto/sha1"
+	"encoding/base32"
 	"encoding/binary"
-	"fmt"
-	"time"
+	"strings"
 )
 
-func Generate(secret string, timestamp int64) (string, error) {
-	hmacHash := hmac.New(sha1.New, []byte(secret))
+func generateTOTP(secretKey string, timestamp int64) uint32 {
+	base32Decoder := base32.StdEncoding.WithPadding(base32.NoPadding)
+	secretKey = strings.ToUpper(strings.TrimSpace(secretKey))
+	secretBytes, _ := base32Decoder.DecodeString(secretKey)
 
 	timeBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(timeBytes, uint64(timestamp))
+	binary.BigEndian.PutUint64(timeBytes, uint64(timestamp)/30)
 
-	hmacHash.Write(timeBytes)
-	hash := hmacHash.Sum(nil)
+	hash := hmac.New(sha1.New, secretBytes)
+	hash.Write(timeBytes)
+	h := hash.Sum(nil)
 
-	offset := hash[len(hash)-1] & 0xf
+	offset := h[len(h)-1] & 0x0F
+	truncatedHash := binary.BigEndian.Uint32(h[offset:]) & 0x7FFFFFFF
 
-	code := binary.BigEndian.Uint32(hash[offset : offset+4])
-	code = code & 0x7fffffff // Remove most significant bit
-
-	otp := code % 1000000
-
-	return fmt.Sprintf("%06d", otp), nil
-}
-
-// Helper function to get current TOTP
-func GenerateCurrentTOTP(secret string) (string, error) {
-	timestamp := time.Now().Unix() / 30
-	return Generate(secret, timestamp)
+	return truncatedHash % 1_000_000
 }
