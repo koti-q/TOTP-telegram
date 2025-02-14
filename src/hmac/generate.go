@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func generateTOTP(secretKey string, timestamp int64) uint32 {
+func GenerateTOTP(secretKey string, timestamp int64) uint32 {
 	base32Decoder := base32.StdEncoding.WithPadding(base32.NoPadding)
 	secretKey = strings.ToUpper(strings.TrimSpace(secretKey))
 	secretBytes, _ := base32Decoder.DecodeString(secretKey)

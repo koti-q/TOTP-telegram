@@ -7,28 +7,47 @@ import (
 	"strings"
 	"time"
 
-	telegramAPI "TOTP-telegram/src/API"
+	tg "TOTP-telegram/src/API"
+	data "TOTP-telegram/src/data"
+	handler "TOTP-telegram/src/telegram-bot/handlers"
 )
 
 var token string
 
 func init() {
-	f, _ := os.Open("../../.env")
+	f, err := os.Open("../../.env")
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer f.Close()
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.HasPrefix(line, "TG_BOT_TOKEN=") {
 			token = strings.TrimPrefix(line, "TG_BOT_TOKEN=")
-			break
 		}
+		break
 	}
+}
+
+var commands = map[string]interface{}{
+	"/start":      handler.HandleStart,
+	"/helloworld": handler.HandleHelloWorld,
+	"/generate":   handler.HandleGenerateTOTP,
+	"/send":       handler.HandleSendTOTP,
 }
 
 func main() {
 	log.Println(token)
-	bot := telegramAPI.NewBot("")
+	bot := tg.NewBot(token)
 	log.Printf("Bot started!! >w<")
+
+	err := data.InitDB("postgres://{user}:{password@{host}:{port}/{db_name}?sslmode=disable")
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("Connected to database")
+
 	var offset int = 0
 	for {
 		updates, err := bot.GetUpdates(offset)
@@ -41,19 +60,23 @@ func main() {
 			log.Println("updates:", updates)
 		}
 		for _, update := range updates {
-			log.Println("aa")
 			// Update the offset to the latest update_id + 1
 			if update.UpdateID >= offset {
 				offset = update.UpdateID + 1
 			}
 			// If the message text is "/start", send "Hello world"
-			if strings.TrimSpace(update.Message.Text) == "/start" {
-				_, err := bot.SendMessange(update.Message.Chat.ID, "Hello world")
-				if err != nil {
-					log.Println("Error sending message:", err)
-				} else {
-					log.Printf("Sent hello world to chat %d", update.Message.Chat.ID)
-				}
+			switch strings.Split(update.Message.Text, " ")[0] {
+			case "/start":
+				handler.HandleStart(*bot, update.Message.Chat.ID)
+			case "/helloworld":
+				handler.HandleHelloWorld(*bot, update.Message.Chat.ID)
+			case "/generate":
+				handler.HandleGenerateTOTP(*bot, update.Message)
+				offset++
+			case "/send":
+				handler.HandleSendTOTP(*bot, update.Message)
+			default:
+				handler.HandleHelloWorld(*bot, update.Message.Chat.ID)
 			}
 		}
 		time.Sleep(1 * time.Second)

@@ -1,4 +1,10 @@
+# env files
 .env
 .gitmodules
 
-src/python-util
+# in development
+install.sh
+admin
+
+# directories
+logs
