@@ -1,6 +1,6 @@
 # env files
 .env
-.gitmodules
+
 
 # in development
 install.sh
