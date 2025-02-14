@@ -4,8 +4,7 @@ That's a simple TOTP aunthenticator that uses Telegram to send the OTPs.
 
 I made it because I don't really like to use a phone and wanted to bind authentication to my Telegram account.
 
-Feel free to fork and pull request!!
-It's in active development
+It's in active development!!
 
 ## TODO
 - [ ] (critical) Make secret's encryption before storing them in DB.
@@ -21,3 +20,6 @@ soon...
 ## Usage
 It's not currently in prod, you can only test it locally.
 
+## Contributing
+Pull requests are welcome!! 
+Also feel free to open issues and fork the repo!
