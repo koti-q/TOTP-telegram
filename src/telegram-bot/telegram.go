@@ -13,6 +13,7 @@ import (
 )
 
 var token string
+var db_url string
 
 func init() {
 	f, err := os.Open("../../.env")
@@ -25,6 +26,9 @@ func init() {
 		line := scanner.Text()
 		if strings.HasPrefix(line, "TG_BOT_TOKEN=") {
 			token = strings.TrimPrefix(line, "TG_BOT_TOKEN=")
+		}
+		if strings.HasPrefix(line, "DATABASE=") {
+			db_url = strings.TrimPrefix(line, "DATABASE=")
 		}
 		break
 	}
@@ -42,7 +46,7 @@ func main() {
 	bot := tg.NewBot(token)
 	log.Printf("Bot started!! >w<")
 
-	err := data.InitDB("postgres://{user}:{password@{host}:{port}/{db_name}?sslmode=disable")
+	err := data.InitDB(db_url)
 	if err != nil {
 		log.Fatal(err)
 	}
