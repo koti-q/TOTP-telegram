@@ -7,7 +7,6 @@ I made it because I don't really like to use a phone and wanted to bind authenti
 It's in active development!!
 
 ## TODO
-- [ ] (critical) Make secret's encryption before storing them in DB.
 - [ ] Add a way to configure secrets (delete/update).
 - [ ] Browser extension with telegram aunthentication.
 
