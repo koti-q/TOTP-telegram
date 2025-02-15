@@ -16,7 +16,7 @@ var token string
 var db_url string
 
 func init() {
-	f, err := os.Open("../../.env")
+	f, err := os.Open(".env")
 	if err != nil {
 		log.Fatal(err)
 	}

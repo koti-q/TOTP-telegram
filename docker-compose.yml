@@ -1,0 +1,23 @@
+version: '3.9'
+
+services:
+  app:
+    build: .
+    environment:
+      - TG_BOT_TOKEN=${TG_BOT_TOKEN}
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/totp_db?sslmode=disable
+    depends_on:
+      - db
+
+  db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=totp_db
+    volumes:
+      - ./data/db.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
