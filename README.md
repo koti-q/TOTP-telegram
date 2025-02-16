@@ -14,10 +14,11 @@ maybe more later.
 
 ## Installation
 
-soon...
+Clone the repo, setup .env.example and run `# docker-compose up`
 
 ## Usage
 It's not currently in prod, you can only test it locally.
+I'll publish it after making secrets encryption.
 
 ## Contributing
 Pull requests are welcome!! 

@@ -14,7 +14,7 @@ COPY .env.example .env
 RUN go build -o main src/telegram-bot/telegram.go
 RUN mkdir -p /data
 
-COPY data/db.sql /data/
+COPY sql/db.sql /data/
 
 ENV TG_BOT_TOKEN=""
 ENV DATABASE_URL=""

@@ -16,7 +16,7 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=totp_db
     volumes:
-      - ./data/db.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./sql/db.sql:/docker-entrypoint-initdb.d/init.sql
       - postgres_data:/var/lib/postgresql/data
 
 volumes:

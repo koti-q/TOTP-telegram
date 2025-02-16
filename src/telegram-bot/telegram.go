@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"log"
 	"os"
 	"strings"
@@ -16,21 +15,11 @@ var token string
 var db_url string
 
 func init() {
-	f, err := os.Open(".env")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer f.Close()
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		line := scanner.Text()
-		if strings.HasPrefix(line, "TG_BOT_TOKEN=") {
-			token = strings.TrimPrefix(line, "TG_BOT_TOKEN=")
-		}
-		if strings.HasPrefix(line, "DATABASE=") {
-			db_url = strings.TrimPrefix(line, "DATABASE=")
-		}
-		break
+	token = os.Getenv("TG_BOT_TOKEN")
+	db_url = os.Getenv("DATABASE_URL")
+
+	if token == "" || db_url == "" {
+		log.Fatal("Environment variables TG_BOT_TOKEN and DATABASE_URL must be set")
 	}
 }
 
