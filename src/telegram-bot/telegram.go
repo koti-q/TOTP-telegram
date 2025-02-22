@@ -8,6 +8,9 @@ import (
 
 	tg "TOTP-telegram/src/API"
 	data "TOTP-telegram/src/data"
+
+	"github.com/joho/godotenv"
+
 	handler "TOTP-telegram/src/telegram-bot/handlers"
 )
 
@@ -15,6 +18,8 @@ var token string
 var db_url string
 
 func init() {
+	godotenv.Load()
+
 	token = os.Getenv("TG_BOT_TOKEN")
 	db_url = os.Getenv("DATABASE_URL")
 

@@ -8,7 +8,7 @@ import (
 
 	tg "TOTP-telegram/src/API"
 	data "TOTP-telegram/src/data"
-	totp "TOTP-telegram/src/hmac"
+	totp "TOTP-telegram/src/totp-generator"
 )
 
 func HandleHelloWorld(bot tg.BotAPI, chatID int64) {
