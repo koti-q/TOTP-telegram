@@ -16,15 +16,17 @@ import (
 
 var token string
 var db_url string
+var encription_key string
 
 func init() {
 	godotenv.Load()
 
 	token = os.Getenv("TG_BOT_TOKEN")
 	db_url = os.Getenv("DATABASE_URL")
+	encription_key = os.Getenv("ENCRYPTION_KEY")
 
 	if token == "" || db_url == "" {
-		log.Fatal("Environment variables TG_BOT_TOKEN and DATABASE_URL must be set")
+		log.Fatal("Environmenencryption_key variables TG_BOT_TOKEN and DATABASE_URL must be set")
 	}
 }
 
@@ -36,13 +38,16 @@ var commands = map[string]interface{}{
 }
 
 func main() {
-	log.Println(token)
 	bot := tg.NewBot(token)
 	log.Printf("Bot started!! >w<")
 
 	err := data.InitDB(db_url)
 	if err != nil {
-		log.Fatal(err)
+		for err != nil {
+			log.Println("Error connecting to database:", err)
+			time.Sleep(2 * time.Second)
+			err = data.InitDB(db_url)
+		}
 	}
 	log.Println("Connected to database")
 
@@ -69,10 +74,10 @@ func main() {
 			case "/helloworld":
 				handler.HandleHelloWorld(*bot, update.Message.Chat.ID)
 			case "/generate":
-				handler.HandleGenerateTOTP(*bot, update.Message)
+				handler.HandleGenerateTOTP(*bot, update.Message, encription_key)
 				offset++
 			case "/send":
-				handler.HandleSendTOTP(*bot, update.Message)
+				handler.HandleSendTOTP(*bot, update.Message, encription_key)
 			default:
 				handler.HandleHelloWorld(*bot, update.Message.Chat.ID)
 			}

@@ -33,7 +33,7 @@ func HandleStart(bot tg.BotAPI, chatID int64) {
 	}
 }
 
-func HandleGenerateTOTP(bot tg.BotAPI, message tg.Message) {
+func HandleGenerateTOTP(bot tg.BotAPI, message tg.Message, key string) {
 	m := strings.Split(message.Text, " ")
 	if len(m) != 3 {
 		bot.SendMessange(message.Chat.ID, "Usage: /generate {name_secret} {secret}")
@@ -46,7 +46,9 @@ func HandleGenerateTOTP(bot tg.BotAPI, message tg.Message) {
 	}
 
 	name := m[1]
-	secret := m[2]
+	log.Println(m[2])
+	secret, _ := data.EncryptSecret(m[2], key)
+	log.Println(secret)
 	err = data.SaveSecret(message.Chat.ID, name, secret)
 	if err != nil {
 		log.Println("Error saving secret:", err)
@@ -57,20 +59,26 @@ func HandleGenerateTOTP(bot tg.BotAPI, message tg.Message) {
 		"To get OTP use: /send %s", name))
 }
 
-func HandleSendTOTP(bot tg.BotAPI, message tg.Message) {
+func HandleSendTOTP(bot tg.BotAPI, message tg.Message, key string) {
 	m := strings.Split(message.Text, " ")
 	if len(m) != 2 {
 		bot.SendMessange(message.Chat.ID, "Usage: /send {name}")
 		return
 	}
 	name := m[1]
-	secret, err := data.GetSecret(message.Chat.ID, name)
-
-	otp := totp.GenerateTOTP(secret, time.Now().Unix())
+	s, err := data.GetSecret(message.Chat.ID, name)
 	if err != nil {
 		log.Println("Error getting secret:", err)
 		bot.SendMessange(message.Chat.ID, "Error getting secret")
 		return
 	}
+	secret, err := data.DecryptSecret(s, key)
+	if err != nil {
+		log.Println("Error decrypting secret:", err)
+		bot.SendMessange(message.Chat.ID, "Error decrypting secret")
+		return
+	}
+	otp := totp.GenerateTOTP(secret, time.Now().Unix())
+
 	bot.SendMessange(message.Chat.ID, fmt.Sprintf("Your TOTP: %d", otp))
 }

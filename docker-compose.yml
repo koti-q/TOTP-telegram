@@ -5,6 +5,7 @@ services:
     build: .
     environment:
       - TG_BOT_TOKEN=${TG_BOT_TOKEN}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - DATABASE_URL=postgres://postgres:postgres@db:5432/totp_db?sslmode=disable
     depends_on:
       db:

@@ -4,9 +4,8 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"encoding/base64"
 	"io"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 func EncryptSecret(secret string, key string) (string, error) {
@@ -26,12 +25,17 @@ func EncryptSecret(secret string, key string) (string, error) {
 		return "", err
 	}
 	ciphertext := gcm.Seal(nonce, nonce, s, nil)
-	return string(ciphertext), nil
+	// Encode to base64 to ensure a valid UTF-8 string
+	return base64.StdEncoding.EncodeToString(ciphertext), nil
 }
 
-func DecryptSecret(c_secret string, key string) (string, error) {
+func DecryptSecret(encodedSecret string, key string) (string, error) {
 	k := []byte(key)
-	s := []byte(c_secret)
+	// Decode secret from base64
+	s, err := base64.StdEncoding.DecodeString(encodedSecret)
+	if err != nil {
+		return "", err
+	}
 	c, err := aes.NewCipher(k)
 	if err != nil {
 		return "", err
@@ -41,21 +45,13 @@ func DecryptSecret(c_secret string, key string) (string, error) {
 		return "", err
 	}
 	nonceSize := gcm.NonceSize()
+	if len(s) < nonceSize {
+		return "", err
+	}
 	nonce, s := s[:nonceSize], s[nonceSize:]
 	secret, err := gcm.Open(nil, nonce, s, nil)
 	if err != nil {
 		return "", err
 	}
 	return string(secret), nil
-}
-
-// Hashing user key that can decrypt the secret
-func HashKey(key string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(key), 14)
-	return string(bytes), err
-}
-
-func CompareKey(key, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(key))
-	return err == nil
 }
