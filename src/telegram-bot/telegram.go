@@ -16,25 +16,20 @@ import (
 
 var token string
 var db_url string
-var encription_key string
+var encryptionKey string
+
+type CommandHandler func(bot *tg.BotAPI, msg tg.Message)
 
 func init() {
 	godotenv.Load()
 
 	token = os.Getenv("TG_BOT_TOKEN")
 	db_url = os.Getenv("DATABASE_URL")
-	encription_key = os.Getenv("ENCRYPTION_KEY")
+	encryptionKey = os.Getenv("ENCRYPTION_KEY")
 
 	if token == "" || db_url == "" {
-		log.Fatal("Environmenencryption_key variables TG_BOT_TOKEN and DATABASE_URL must be set")
+		log.Fatal("Environment variables TG_BOT_TOKEN and DATABASE_URL must be set")
 	}
-}
-
-var commands = map[string]interface{}{
-	"/start":      handler.HandleStart,
-	"/helloworld": handler.HandleHelloWorld,
-	"/generate":   handler.HandleGenerateTOTP,
-	"/send":       handler.HandleSendTOTP,
 }
 
 func main() {
@@ -51,7 +46,25 @@ func main() {
 	}
 	log.Println("Connected to database")
 
-	var offset int = 0
+	commands := map[string]CommandHandler{
+		"/start": func(bot *tg.BotAPI, msg tg.Message) {
+			handler.HandleStart(*bot, msg.Chat.ID)
+		},
+		"/helloworld": func(bot *tg.BotAPI, msg tg.Message) {
+			handler.HandleHelloWorld(*bot, msg.Chat.ID)
+		},
+		"/generate": func(bot *tg.BotAPI, msg tg.Message) {
+			handler.HandleGenerateTOTP(*bot, msg, encryptionKey)
+		},
+		"/send": func(bot *tg.BotAPI, msg tg.Message) {
+			handler.HandleSendTOTP(*bot, msg, encryptionKey)
+		},
+		"/s": func(bot *tg.BotAPI, msg tg.Message) {
+			handler.HandleSendTOTP(*bot, msg, encryptionKey)
+		},
+	}
+
+	offset := 0
 	for {
 		updates, err := bot.GetUpdates(offset)
 		if err != nil {
@@ -60,25 +73,19 @@ func main() {
 			continue
 		}
 		if updates != nil {
-			log.Println("updates:", updates)
+			log.Println("Received updates:", updates)
 		}
 		for _, update := range updates {
-			// Update the offset to the latest update_id + 1
+			// Update the offset so we don't reprocess the same update.
 			if update.UpdateID >= offset {
 				offset = update.UpdateID + 1
 			}
-			// If the message text is "/start", send "Hello world"
-			switch strings.Split(update.Message.Text, " ")[0] {
-			case "/start":
-				handler.HandleStart(*bot, update.Message.Chat.ID)
-			case "/helloworld":
-				handler.HandleHelloWorld(*bot, update.Message.Chat.ID)
-			case "/generate":
-				handler.HandleGenerateTOTP(*bot, update.Message, encription_key)
-				offset++
-			case "/send":
-				handler.HandleSendTOTP(*bot, update.Message, encription_key)
-			default:
+			// Extract the command from the message.
+			command := strings.Split(update.Message.Text, " ")[0]
+			if cmdHandler, ok := commands[command]; ok {
+				cmdHandler(bot, update.Message)
+			} else {
+				// Fallback to a default handler if the command is not recognized.
 				handler.HandleHelloWorld(*bot, update.Message.Chat.ID)
 			}
 		}
