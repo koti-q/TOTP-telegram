@@ -62,6 +62,18 @@ func main() {
 		"/s": func(bot *tg.BotAPI, msg tg.Message) {
 			handler.HandleSendTOTP(*bot, msg, encryptionKey)
 		},
+		"/list": func(bot *tg.BotAPI, msg tg.Message) {
+			handler.HandleList(*bot, msg)
+		},
+		"/l": func(bot *tg.BotAPI, msg tg.Message) {
+			handler.HandleList(*bot, msg)
+		},
+		"/remove": func(bot *tg.BotAPI, msg tg.Message) {
+			handler.HandleRemove(*bot, msg.Chat.ID, msg)
+		},
+		"/r": func(bot *tg.BotAPI, msg tg.Message) {
+			handler.HandleRemove(*bot, msg.Chat.ID, msg)
+		},
 	}
 
 	offset := 0
@@ -76,11 +88,10 @@ func main() {
 			log.Println("Received updates:", updates)
 		}
 		for _, update := range updates {
-			// Update the offset so we don't reprocess the same update.
+			// Update the offset so it doesn't reprocess the same update.
 			if update.UpdateID >= offset {
 				offset = update.UpdateID + 1
 			}
-			// Extract the command from the message.
 			command := strings.Split(update.Message.Text, " ")[0]
 			if cmdHandler, ok := commands[command]; ok {
 				cmdHandler(bot, update.Message)

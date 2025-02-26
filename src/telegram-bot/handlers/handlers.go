@@ -82,3 +82,27 @@ func HandleSendTOTP(bot tg.BotAPI, message tg.Message, key string) {
 
 	bot.SendMessange(message.Chat.ID, fmt.Sprintf("Your TOTP: %d", otp))
 }
+
+func HandleList(bot tg.BotAPI, message tg.Message) {
+	secrets := data.ReadSecrets(message.Chat.ID)
+
+	if len(secrets) == 0 {
+		bot.SendMessange(message.Chat.ID, "You have no secrets")
+		return
+	}
+	var text string = "Your secrets:\n"
+	for _, secret := range secrets {
+		text += fmt.Sprintf("- %s\n", secret)
+	}
+	bot.SendMessange(message.Chat.ID, text)
+}
+
+func HandleRemove(bot tg.BotAPI, chatID int64, message tg.Message) {
+	m := strings.Split(message.Text, " ")
+	if len(m) != 2 {
+		bot.SendMessange(chatID, "Usage: /remove {name}")
+		return
+	}
+	data.DeleteSecret(chatID, m[1])
+	bot.SendMessange(chatID, fmt.Sprintf("Secret %s removed", m[1]))
+}
