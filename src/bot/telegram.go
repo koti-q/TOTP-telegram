@@ -7,11 +7,11 @@ import (
 	"time"
 
 	tg "TOTP-telegram/src/API"
-	data "TOTP-telegram/src/data"
+	data "TOTP-telegram/src/data/storage"
 
 	"github.com/joho/godotenv"
 
-	handler "TOTP-telegram/src/telegram-bot/handlers"
+	handler "TOTP-telegram/src/bot/handlers"
 )
 
 var token string
@@ -48,6 +48,9 @@ func main() {
 
 	commands := map[string]CommandHandler{
 		"/start": func(bot *tg.BotAPI, msg tg.Message) {
+			handler.HandleStart(*bot, msg.Chat.ID)
+		},
+		"/help": func(bot *tg.BotAPI, msg tg.Message) {
 			handler.HandleStart(*bot, msg.Chat.ID)
 		},
 		"/helloworld": func(bot *tg.BotAPI, msg tg.Message) {

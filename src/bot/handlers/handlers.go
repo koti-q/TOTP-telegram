@@ -7,8 +7,9 @@ import (
 	"time"
 
 	tg "TOTP-telegram/src/API"
-	data "TOTP-telegram/src/data"
-	totp "TOTP-telegram/src/totp-generator"
+	crypt "TOTP-telegram/src/data/crypt"
+	data "TOTP-telegram/src/data/storage"
+	totp "TOTP-telegram/src/totp"
 )
 
 func HandleHelloWorld(bot tg.BotAPI, chatID int64) {
@@ -23,8 +24,10 @@ func HandleHelloWorld(bot tg.BotAPI, chatID int64) {
 func HandleStart(bot tg.BotAPI, chatID int64) {
 	_, err := bot.SendMessange(chatID,
 		"Welcome to the TOTP Telegram bot!\n"+
-			"/generate {name_secret} {secret} - Generate a TOTP\n"+
-			"/send {name} Send a TOTP to the user\n")
+			"/generate {name_secret} {secret} - generate a TOTP\n"+
+			"/send (/s) {name} Send a TOTP to the user\n"+
+			"/list (/l) - list all your TOTPs\n"+
+			"/remove (/r) {name} - remove a TOTP\n")
 
 	if err != nil {
 		log.Println("Error sending message:", err)
@@ -47,7 +50,7 @@ func HandleGenerateTOTP(bot tg.BotAPI, message tg.Message, key string) {
 
 	name := m[1]
 	log.Println(m[2])
-	secret, _ := data.EncryptSecret(m[2], key)
+	secret, _ := crypt.EncryptSecret(m[2], key)
 	log.Println(secret)
 	err = data.SaveSecret(message.Chat.ID, name, secret)
 	if err != nil {
@@ -72,7 +75,7 @@ func HandleSendTOTP(bot tg.BotAPI, message tg.Message, key string) {
 		bot.SendMessange(message.Chat.ID, "Error getting secret")
 		return
 	}
-	secret, err := data.DecryptSecret(s, key)
+	secret, err := crypt.DecryptSecret(s, key)
 	if err != nil {
 		log.Println("Error decrypting secret:", err)
 		bot.SendMessange(message.Chat.ID, "Error decrypting secret")
